@@ -2,14 +2,15 @@
   "name": "aichatboard",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-   "backend": "node backend/server.js",
+    "backend": "node backend/server.js",
     "frontend": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
     "build": "cd frontend && npm install && npm run build",
     "start": "node backend/server.js"
   },
-  "devDependencies": {
-    "concurrently": "^10.0.5"
+  "dependencies": {
+    "concurrently": "^9.2.1"
   }
 }
