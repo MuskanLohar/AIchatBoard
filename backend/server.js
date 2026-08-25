@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 
 app.post("/api/ask-ai", async (req, res) => {
   try {
-    const { prompt } = req.body;
+    const { prompt, history = [] } = req.body;
 
     if (!prompt || prompt.trim() === "") {
       return res.status(400).json({
@@ -30,13 +30,32 @@ app.post("/api/ask-ai", async (req, res) => {
       });
     }
 
+    let conversation = "";
+
+    history.forEach((message) => {
+      if (message.role === "user") {
+        conversation += `User: ${message.text}\n`;
+      }
+
+      if (message.role === "ai") {
+        conversation += `AI: ${message.text}\n`;
+      }
+    });
+
     const finalPrompt = `
 You are a helpful AI assistant.
 
 Answer the user's question in simple English.
 
-User question:
+Here is the previous conversation:
+
+${conversation}
+
+Current user question:
+
 ${prompt}
+
+Answer the current question using the previous conversation as context when needed.
 `;
 
     const response = await ai.models.generateContent({
@@ -48,7 +67,6 @@ ${prompt}
       success: true,
       answer: response.text,
     });
-
   } catch (error) {
     console.error("GEMINI ERROR:", error);
 
