@@ -1,0 +1,14 @@
+{
+  "name": "aichatboard",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+  "frontend": "cd frontend && npm run dev",
+  "backend": "node backend/server.js",
+  "build": "cd frontend && npm install --include=dev && npm run build",
+  "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5"
+  }
+}

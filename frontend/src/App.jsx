@@ -8,17 +8,19 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-
   const chatEndRef = useRef(null);
 
+  // Auto scroll to latest message
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages, loading]);
 
+  // ================= SEND MESSAGE =================
+
   const handleSend = async () => {
-    if (!message.trim()) {
+    if (!message.trim() || loading) {
       return;
     }
 
@@ -40,9 +42,9 @@ function App() {
       // Clear input
       setMessage("");
 
-      // Send request to backend
+      // Send request to local backend
       const response = await axios.post(
-        "https://aichatboard-backend.vercel.app/api/ask-ai",
+        "/api/ask-ai",
         {
           prompt: userMessage,
           history: messages,
@@ -60,11 +62,16 @@ function App() {
     } catch (error) {
       console.log("ERROR:", error);
 
-      setError("Something went wrong. Please try again.");
+      setError(
+        error.response?.data?.message ||
+        "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
   };
+
+  // ================= NEW CHAT =================
 
   const handleNewChat = () => {
     setMessages([]);
@@ -72,6 +79,7 @@ function App() {
     setError("");
   };
 
+  // ================= COPY =================
 
   const handleCopy = async (text) => {
     try {
@@ -81,17 +89,19 @@ function App() {
     }
   };
 
-
   return (
     <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4">
 
       {/* Main Chat Container */}
+
       <div className="w-full max-w-4xl h-[90vh] bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden">
 
         {/* ================= HEADER ================= */}
+
         <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between">
 
           {/* Logo + Name */}
+
           <div className="flex items-center gap-3">
 
             <div className="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center text-xl">
@@ -112,6 +122,7 @@ function App() {
           </div>
 
           {/* AI Model */}
+
           <div className="flex items-center gap-3">
 
             <span className="text-sm text-slate-400">
@@ -129,11 +140,12 @@ function App() {
 
         </div>
 
-
         {/* ================= CHAT AREA ================= */}
+
         <div className="flex-1 overflow-y-auto p-6">
 
           {/* Welcome Screen */}
+
           {messages.length === 0 && !loading && !error && (
             <div className="h-full flex flex-col items-center justify-center text-center">
 
@@ -153,7 +165,6 @@ function App() {
             </div>
           )}
 
-
           {/* ================= CHAT MESSAGES ================= */}
 
           {messages.map((msg, index) => (
@@ -161,6 +172,7 @@ function App() {
             <div key={index}>
 
               {/* USER MESSAGE */}
+
               {msg.role === "user" && (
                 <div className="flex justify-end mb-5">
 
@@ -172,9 +184,6 @@ function App() {
 
                     <div className="bg-violet-600 px-5 py-3 rounded-2xl rounded-br-md shadow">
                       {msg.text}
-
-
-
                     </div>
 
                   </div>
@@ -182,12 +191,13 @@ function App() {
                 </div>
               )}
 
-
               {/* AI MESSAGE */}
+
               {msg.role === "ai" && (
                 <div className="flex gap-3 items-start mb-5">
 
                   {/* AI Avatar */}
+
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center shrink-0">
                     🤖
                   </div>
@@ -201,13 +211,26 @@ function App() {
                     <div className="bg-slate-800 px-5 py-4 rounded-2xl rounded-bl-md text-slate-200 shadow">
 
                       <div className="prose prose-invert max-w-none">
+
                         <ReactMarkdown
                           components={{
-                            code({ inline, className, children, ...props }) {
-                              const match = /language-(\w+)/.exec(className || "");
+                            code({
+                              inline,
+                              className,
+                              children,
+                              ...props
+                            }) {
+                              const match =
+                                /language-(\w+)/.exec(
+                                  className || ""
+                                );
 
-                              const code = String(children).replace(/\n$/, "");
+                              const code = String(children).replace(
+                                /\n$/,
+                                ""
+                              );
 
+                              // Code block
                               if (!inline && match) {
                                 return (
                                   <div className="mt-3 rounded-xl overflow-hidden border border-slate-700 bg-slate-950">
@@ -219,7 +242,9 @@ function App() {
                                       </span>
 
                                       <button
-                                        onClick={() => handleCopy(code)}
+                                        onClick={() =>
+                                          handleCopy(code)
+                                        }
                                         className="text-xs text-slate-400 hover:text-white transition"
                                       >
                                         📋 Copy
@@ -228,15 +253,18 @@ function App() {
                                     </div>
 
                                     <pre className="p-4 overflow-x-auto text-sm text-slate-200">
+
                                       <code {...props}>
                                         {children}
                                       </code>
+
                                     </pre>
 
                                   </div>
                                 );
                               }
 
+                              // Inline code
                               return (
                                 <code
                                   className="bg-slate-900 px-1.5 py-0.5 rounded text-violet-300"
@@ -250,7 +278,10 @@ function App() {
                         >
                           {msg.text}
                         </ReactMarkdown>
+
                       </div>
+
+                      {/* Copy AI Response */}
 
                       <button
                         onClick={() => handleCopy(msg.text)}
@@ -267,9 +298,7 @@ function App() {
               )}
 
             </div>
-
           ))}
-
 
           {/* ================= LOADING ================= */}
 
@@ -303,7 +332,6 @@ function App() {
             </div>
           )}
 
-
           {/* ================= ERROR ================= */}
 
           {error && (
@@ -315,7 +343,6 @@ function App() {
           <div ref={chatEndRef}></div>
 
         </div>
-
 
         {/* ================= INPUT AREA ================= */}
 
