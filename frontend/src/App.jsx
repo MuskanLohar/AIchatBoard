@@ -42,7 +42,7 @@ function App() {
 
       // Send request to backend
       const response = await axios.post(
-        "http://localhost:5000/api/ask-ai",
+        "https://aichatboard-backend.vercel.app/api/ask-ai",
         {
           prompt: userMessage,
           history: messages,
