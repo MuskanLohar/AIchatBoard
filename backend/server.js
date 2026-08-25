@@ -17,6 +17,8 @@ app.use(
   })
 );
 
+// ================= MIDDLEWARE =================
+
 app.use(express.json());
 
 // ================= GEMINI =================
@@ -25,24 +27,27 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-// ================= HOME =================
+// ================= HOME ROUTE =================
 
 app.get("/", (req, res) => {
   res.send("GenAI Backend is running");
 });
 
-// ================= AI CHAT =================
+// ================= AI CHAT ROUTE =================
 
 app.post("/api/ask-ai", async (req, res) => {
   try {
     const { prompt, history = [] } = req.body;
 
+    // Validation
     if (!prompt || prompt.trim() === "") {
       return res.status(400).json({
         success: false,
         message: "Prompt is required",
       });
     }
+
+    // ================= CHAT HISTORY =================
 
     let conversation = "";
 
@@ -55,6 +60,8 @@ app.post("/api/ask-ai", async (req, res) => {
         conversation += `AI: ${message.text}\n`;
       }
     });
+
+    // ================= FINAL PROMPT =================
 
     const finalPrompt = `
 You are a helpful AI assistant.
@@ -72,10 +79,14 @@ ${prompt}
 Answer the current question using the previous conversation as context when needed.
 `;
 
+    // ================= GEMINI API =================
+
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash-lite",
       contents: finalPrompt,
     });
+
+    // ================= SUCCESS RESPONSE =================
 
     res.json({
       success: true,
@@ -91,14 +102,8 @@ Answer the current question using the previous conversation as context when need
   }
 });
 
-// ================= LOCAL SERVER =================
+// ================= SERVER =================
 
-if (process.env.NODE_ENV !== "production") {
-  app.listen(5000, () => {
-    console.log("Server running on port 5000");
-  });
-}
-
-// ================= VERCEL =================
-
-export default app;
+app.listen(5000, () => {
+  console.log("Server running on port 5000");
+});
