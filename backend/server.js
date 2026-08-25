@@ -8,31 +8,28 @@ dotenv.config();
 const app = express();
 
 // ================= CORS =================
-
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
   })
 );
 
 // ================= MIDDLEWARE =================
-
 app.use(express.json());
 
 // ================= GEMINI =================
-
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
 // ================= HOME ROUTE =================
-
 app.get("/", (req, res) => {
   res.send("GenAI Backend is running");
 });
 
 // ================= AI CHAT ROUTE =================
-
 app.post("/api/ask-ai", async (req, res) => {
   try {
     const { prompt, history = [] } = req.body;
@@ -46,7 +43,6 @@ app.post("/api/ask-ai", async (req, res) => {
     }
 
     // ================= CHAT HISTORY =================
-
     let conversation = "";
 
     history.forEach((message) => {
@@ -60,7 +56,6 @@ app.post("/api/ask-ai", async (req, res) => {
     });
 
     // ================= FINAL PROMPT =================
-
     const finalPrompt = `
 You are a helpful AI assistant.
 
@@ -78,14 +73,12 @@ Answer the current question using the previous conversation as context when need
 `;
 
     // ================= GEMINI API =================
-
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash-lite",
       contents: finalPrompt,
     });
 
     // ================= SUCCESS RESPONSE =================
-
     res.json({
       success: true,
       answer: response.text,
@@ -101,7 +94,8 @@ Answer the current question using the previous conversation as context when need
 });
 
 // ================= SERVER =================
+const PORT = process.env.PORT || 5000;
 
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
